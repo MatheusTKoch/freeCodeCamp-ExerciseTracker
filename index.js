@@ -24,6 +24,19 @@ const userSchema = new mongoose.Schema({
 const userModel = mongoose.model('user', userSchema);
 
 app.route('/api/users')
+.get(function(req, res) {
+  var userQuery = userModel.find().exec();
+  userQuery.then(function(doc) {
+    var userQueryArray = []
+    for (let i = 0; i < doc.length; i++) {
+      userQueryArray.push({
+        username: doc[i].username,
+        _id: doc[i]._id
+      });
+    }
+      res.json(userQueryArray);
+  });
+})
 .post(function(req, res) {
   let userName = req.body.username;
   var newUser = new userModel({
@@ -36,9 +49,36 @@ app.route('/api/users')
     username: userName,
     _id: newUser._id
   });
-
 });
 
+const exerciseSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  duration: {
+    type: Number,
+    required: true
+  },
+  date: {
+    type: String,
+    required: true
+  },
+  _id: {
+    required: true
+  }
+});
+
+const exerciseModel = mongoose.model('exercise', exerciseSchema);
+
+app.route('/api/users/:_id/exercises')
+.post(function(req, res) {
+
+});
 
 
 const listener = app.listen(process.env.PORT || 3000, () => {
