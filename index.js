@@ -2,6 +2,9 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 require('dotenv').config()
+const mongoose = require('mongoose');
+
+mongoose.connect(process.env.DATABASE_URL);
 
 app.use(cors())
 app.use(express.static('public'))
