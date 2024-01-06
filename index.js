@@ -67,11 +67,7 @@ const exerciseSchema = new mongoose.Schema({
   date: {
     type: String,
     required: true
-  },
-  _id: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
-  },
+  }
 });
 
 const exerciseModel = mongoose.model('exercise', exerciseSchema);
@@ -95,11 +91,16 @@ app.route('/api/users/:_id/exercises')
         username: user,
         description: desc,
         duration: dur,
+        date: dateFinal
+      });
+      
+      res.json({
+        username: user,
+        description: desc,
+        duration: dur,
         date: dateFinal,
         _id: userID
       });
-      
-      res.json(newExercise);
 
       newExercise.save();
     });
@@ -111,10 +112,20 @@ app.route('/api/users/:_id/logs')
   var userName = userModel.find({_id: userId}).exec();
   userName.then(function(doc) {
     var user = doc[0].username;
-    var exerciseByUser = exerciseModel.find({username: user}).exec()
-    exerciseByUser.then(function(doc) {
-      var count = doc.length;
-      console.log(doc);
+    var exerciseByUser = exerciseModel.find({username: user}, {
+      _id: 0,
+      description: 1,
+      duration: 1,
+      date: 1
+    }).exec()
+    exerciseByUser.then(function(docExercise) {
+      var countRes = docExercise.length;
+      res.json({
+        username: user,
+        count: countRes,
+        _id: userId,
+        log: docExercise
+      });
     });
   })
 });
