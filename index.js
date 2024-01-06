@@ -69,15 +69,40 @@ const exerciseSchema = new mongoose.Schema({
     required: true
   },
   _id: {
+    type: mongoose.Schema.Types.ObjectId,
     required: true
-  }
+  },
 });
 
 const exerciseModel = mongoose.model('exercise', exerciseSchema);
 
 app.route('/api/users/:_id/exercises')
 .post(function(req, res) {
+    var userID = req.params._id;
+    var desc = req.body.description;
+    var dur = req.body.duration;
+  
+    var userName = userModel.find({_id: userID}).exec();
+    userName.then(function(doc) {
+      var user = doc[0].username;
+      var dateFinal = '';
+        if (!req.body.date) {
+          dateFinal = new Date().toDateString();
+        } else {
+          dateFinal = new Date(req.body.date).toDateString();
+        }
+      var newExercise = new exerciseModel({
+        username: user,
+        description: desc,
+        duration: dur,
+        date: dateFinal,
+        _id: userID
+      });
+      
+      res.json(newExercise);
 
+      newExercise.save();
+    });
 });
 
 
