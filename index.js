@@ -105,6 +105,20 @@ app.route('/api/users/:_id/exercises')
     });
 });
 
+app.route('/api/users/:_id/logs')
+.get(function(req, res) {
+  var userId = req.params._id;
+  var userName = userModel.find({_id: userId}).exec();
+  userName.then(function(doc) {
+    var user = doc[0].username;
+    var exerciseByUser = exerciseModel.find({username: user}).exec()
+    exerciseByUser.then(function(doc) {
+      var count = doc.length;
+      console.log(doc);
+    });
+  })
+});
+
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
