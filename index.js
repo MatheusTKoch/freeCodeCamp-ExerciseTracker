@@ -93,6 +93,8 @@ app.route('/api/users/:_id/exercises')
         duration: dur,
         date: dateFinal
       });
+
+      newExercise.save();
       
       res.json({
         username: user,
@@ -102,13 +104,17 @@ app.route('/api/users/:_id/exercises')
         _id: userID
       });
 
-      newExercise.save();
+      
     });
 });
 
-app.route('/api/users/:_id/logs')
+app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
 .get(function(req, res) {
   var userId = req.params._id;
+  var searchParamsFrom = req.params.from;
+  var searchParamsTo = req.params.to;
+  var searchParamsLimit = req.params.limit;
+  console.log(searchParamsFrom, searchParamsTo, searchParamsLimit)
   var userName = userModel.find({_id: userId}).exec();
   userName.then(function(doc) {
     var user = doc[0].username;
@@ -119,12 +125,26 @@ app.route('/api/users/:_id/logs')
       date: 1
     }).exec()
     exerciseByUser.then(function(docExercise) {
-      var countRes = docExercise.length;
+      //optional parameters
+      let docExerciseFilter = docExercise;
+      let docExerciseFiltered = docExercise;
+      console.log(docExerciseFilter)
+      if (searchParamsFrom && searchParamsTo) {
+        //
+      }
+
+      if (searchParamsLimit) {
+         docExerciseFiltered = docExerciseFilter.slice(0, searchParamsLimit - 1);
+      }
+
+      //
+
+      var countRes = docExerciseFiltered.length;
       res.json({
         username: user,
         count: countRes,
         _id: userId,
-        log: docExercise
+        log: docExerciseFilter
       });
     });
   })
