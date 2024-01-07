@@ -114,7 +114,6 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
   var searchParamsFrom = req.params.from;
   var searchParamsTo = req.params.to;
   var searchParamsLimit = req.params.limit;
-  console.log(searchParamsFrom, searchParamsTo, searchParamsLimit)
   var userName = userModel.find({_id: userId}).exec();
   userName.then(function(doc) {
     var user = doc[0].username;
@@ -128,16 +127,16 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
       //optional parameters
       let docExerciseFilter = docExercise;
       let docExerciseFiltered = docExercise;
-      console.log(docExerciseFiltered, searchParamsLimit)
       if (searchParamsFrom && searchParamsTo) {
-        //
+         let from = new Date(searchParamsFrom);
+         let to = new Date(searchParamsTo)
+         docExerciseFiltered = docExerciseFiltered.filter((doc) => doc.date >= from);
+         docExerciseFiltered = docExerciseFiltered.filter((doc) => doc.date <= to);
       }
 
       if (searchParamsLimit) {
          docExerciseFiltered = docExerciseFilter.slice(0, searchParamsLimit);
       }
-
-      //
 
       var countRes = docExerciseFiltered.length;
       res.json({
