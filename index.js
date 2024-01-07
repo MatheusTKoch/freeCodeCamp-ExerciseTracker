@@ -128,13 +128,13 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
       //optional parameters
       let docExerciseFilter = docExercise;
       let docExerciseFiltered = docExercise;
-      console.log(docExerciseFilter)
+      console.log(docExerciseFiltered, searchParamsLimit)
       if (searchParamsFrom && searchParamsTo) {
         //
       }
 
       if (searchParamsLimit) {
-         docExerciseFiltered = docExerciseFilter.slice(0, searchParamsLimit - 1);
+         docExerciseFiltered = docExerciseFilter.slice(0, searchParamsLimit);
       }
 
       //
@@ -144,7 +144,7 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
         username: user,
         count: countRes,
         _id: userId,
-        log: docExerciseFilter
+        log: docExerciseFiltered
       });
     });
   })
