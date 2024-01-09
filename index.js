@@ -109,13 +109,13 @@ app.route('/api/users/:_id/exercises')
 app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
 .get(function(req, res) {
   var userId = req.params._id;
+  var searchParamsFrom = req.params.from;
+  var searchParamsTo = req.params.to;
+  var searchParamsLimit = req.params.limit;
 
   var userName = userModel.find({_id: userId}).exec();
   userName.then(function(doc) {
 
-    var searchParamsFrom = req.params.from;
-    var searchParamsTo = req.params.to;
-    var searchParamsLimit = req.params.limit;
     var user = doc[0].username;
 
     var exerciseByUser = exerciseModel.find({username: user}, {
