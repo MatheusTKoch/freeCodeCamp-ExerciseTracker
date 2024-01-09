@@ -52,10 +52,6 @@ app.route('/api/users')
 });
 
 const exerciseSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true
-  },
   description: {
     type: String,
     required: true
@@ -75,20 +71,23 @@ const exerciseModel = mongoose.model('exercise', exerciseSchema);
 app.route('/api/users/:_id/exercises')
 .post(function(req, res) {
     var userID = req.params._id;
-    var desc = req.body.description;
-    var dur = req.body.duration;
-  
+
     var userName = userModel.find({_id: userID}).exec();
     userName.then(function(doc) {
+
+      var desc = req.body.description;
+      var dur = req.body.duration;
       var user = doc[0].username;
+
       var dateFinal = '';
+
         if (!req.body.date) {
           dateFinal = new Date().toDateString();
         } else {
           dateFinal = new Date(req.body.date).toDateString();
         }
+
       var newExercise = new exerciseModel({
-        username: user,
         description: desc,
         duration: dur,
         date: dateFinal
@@ -104,19 +103,21 @@ app.route('/api/users/:_id/exercises')
         _id: userID
       });
 
-      
     });
 });
 
 app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
 .get(function(req, res) {
   var userId = req.params._id;
-  var searchParamsFrom = req.params.from;
-  var searchParamsTo = req.params.to;
-  var searchParamsLimit = req.params.limit;
+
   var userName = userModel.find({_id: userId}).exec();
   userName.then(function(doc) {
+
+    var searchParamsFrom = req.params.from;
+    var searchParamsTo = req.params.to;
+    var searchParamsLimit = req.params.limit;
     var user = doc[0].username;
+
     var exerciseByUser = exerciseModel.find({username: user}, {
       _id: 0,
       description: 1,
@@ -124,9 +125,10 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
       date: 1
     }).exec()
     exerciseByUser.then(function(docExercise) {
-      //optional parameters
+
       let docExerciseFilter = docExercise;
       let docExerciseFiltered = docExercise;
+
       if (searchParamsFrom && searchParamsTo) {
          let from = new Date(searchParamsFrom);
          let to = new Date(searchParamsTo)
