@@ -61,7 +61,7 @@ const exerciseSchema = new mongoose.Schema({
     required: true
   },
   date: {
-    type: String,
+    type: Date,
     required: true
   }
 });
@@ -76,7 +76,7 @@ app.route('/api/users/:_id/exercises')
     userName.then(function(doc) {
 
       var desc = req.body.description;
-      var dur = req.body.duration;
+      var dur = parseInt(req.body.duration);
       var user = doc[0].username;
 
       var dateFinal = '';
