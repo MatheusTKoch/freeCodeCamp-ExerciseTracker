@@ -85,6 +85,7 @@ app.route('/api/users/:_id/exercises')
           dateFinal = new Date().toDateString();
         } else {
           dateFinal = new Date(req.body.date).toDateString();
+          console.log(dateFinal)
         }
 
       var newExercise = new exerciseModel({
