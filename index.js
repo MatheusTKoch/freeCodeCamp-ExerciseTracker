@@ -61,7 +61,7 @@ const exerciseSchema = new mongoose.Schema({
     required: true
   },
   date: {
-    type: Date,
+    type: String,
     required: true
   }
 });
@@ -82,10 +82,9 @@ app.route('/api/users/:_id/exercises')
       var dateFinal = '';
 
         if (!req.body.date) {
-          dateFinal = new Date().toDateString();
+          dateFinal = (new Date()).toDateString();
         } else {
-          dateFinal = new Date(req.body.date).toDateString();
-          console.log(dateFinal)
+          dateFinal = (new Date(req.body.date)).toDateString();
         }
 
       var newExercise = new exerciseModel({
