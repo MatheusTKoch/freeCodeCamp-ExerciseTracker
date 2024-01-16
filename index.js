@@ -74,10 +74,10 @@ app.route('/api/users/:_id/exercises')
 
     var userName = userModel.find({_id: userID}).exec();
     userName.then(function(doc) {
-
       var desc = req.body.description;
       var dur = parseInt(req.body.duration);
       var user = doc[0].username;
+      var id = doc[0]._id.toString();
 
       var dateFinal = '';
 
@@ -95,12 +95,16 @@ app.route('/api/users/:_id/exercises')
 
       newExercise.save();
       
+      var newExercise = exerciseModel.find().limit(1).exec();
+      newExercise.then(function(doc) {
+        console.log(doc);
+      })
       res.json({
         username: user,
         description: desc,
-        duration: dur,
-        date: dateFinal,
-        _id: userID
+        duration: parseInt(dur),
+        _id: id,
+        date: dateFinal
       });
 
     });
