@@ -63,6 +63,10 @@ const exerciseSchema = new mongoose.Schema({
   date: {
     type: String,
     required: true
+  },
+  date_log: {
+    type: String,
+    required: true
   }
 });
 
@@ -75,7 +79,7 @@ app.route('/api/users/:_id/exercises')
     var userName = userModel.find({_id: userID}).exec();
     userName.then(function(doc) {
       var desc = req.body.description;
-      var dur = parseInt(req.body.duration);
+      var dur =  req.body.duration;
       var user = doc[0].username;
       var id = doc[0]._id.toString();
 
@@ -90,23 +94,24 @@ app.route('/api/users/:_id/exercises')
       var newExercise = new exerciseModel({
         description: desc,
         duration: dur,
-        date: dateFinal
+        date: dateFinal,
+        date_log: new Date()
       });
 
       newExercise.save();
       
-      var newExercise = exerciseModel.find().limit(1).exec();
+      var newExercise = exerciseModel.find().sort({date_log: -1}).limit(1).exec();
       newExercise.then(function(doc) {
-        console.log(doc);
-      })
-      res.json({
-        username: user,
-        description: desc,
-        duration: parseInt(dur),
-        _id: id,
-        date: dateFinal
-      });
+        var durNum = doc[0].duration;
 
+        res.json({
+          username: user,
+          description: desc,
+          duration: parseInt(durNum),
+          _id: id,
+          date: dateFinal
+        });
+      })
     });
 });
 
