@@ -83,9 +83,11 @@ app.route('/api/users/:_id/exercises')
       var user = doc[0].username;
       var id = doc[0]._id.toString();
 
-      var dateFinal = '';
+      var dateFinal = req.body.date;
 
-        if (!req.body.date) {
+        if (!dateFinal) {
+          dateFinal = (new Date()).toDateString();
+        } else if (dateFinal == undefined) {
           dateFinal = (new Date()).toDateString();
         } else {
           dateFinal = (new Date(req.body.date)).toDateString();
@@ -107,7 +109,7 @@ app.route('/api/users/:_id/exercises')
         res.json({
           username: user,
           description: desc,
-          duration: parseInt(durNum),
+          duration: durNum,
           _id: id,
           date: dateFinal
         });
@@ -150,10 +152,11 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
       }
 
       var countRes = docExerciseFiltered.length;
+
       res.json({
+        _id: userId,
         username: user,
         count: countRes,
-        _id: userId,
         log: docExerciseFiltered
       });
     });
