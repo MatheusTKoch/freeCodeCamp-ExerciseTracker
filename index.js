@@ -127,8 +127,10 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
 
   var userName = userModel.find({_id: userId}).exec();
   userName.then(function(doc) {
-
+    
+    var id = doc[0]._id.toString();
     var user = doc[0].username;
+    
 
     var exerciseByUser = exerciseModel.find({username: user}, {
       _id: 0,
@@ -155,7 +157,7 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
       var countRes = docExerciseFiltered.length;
 
       res.json({
-        _id: userId,
+        _id: id,
         username: user,
         count: countRes,
         log: docExerciseFiltered
