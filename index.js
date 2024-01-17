@@ -80,7 +80,7 @@ app.route('/api/users/:_id/exercises')
     userName.then(function(doc) {
       var desc = req.body.description;
       var dur =  req.body.duration;
-      var user = doc[0].username;
+      var user = doc[0].username.toString();
       var id = doc[0]._id.toString();
 
       var dateFinal = req.body.date;
@@ -104,14 +104,15 @@ app.route('/api/users/:_id/exercises')
       
       var newExercise = exerciseModel.find().sort({date_log: -1}).limit(1).exec();
       newExercise.then(function(doc) {
-        var durNum = doc[0].duration;
+        var desc = doc[0].description.toString();
+        var durNum = parseInt(doc[0].duration);
 
         res.json({
           username: user,
           description: desc,
           duration: durNum,
-          _id: id,
-          date: dateFinal
+          date: dateFinal,
+          _id: id
         });
       })
     });
