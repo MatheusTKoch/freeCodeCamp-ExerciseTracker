@@ -43,7 +43,9 @@ app.route('/api/users')
     username: userName
   });
 
-  newUser.save();
+  newUser.save((err) => {
+    return res.status(500).json({ error: "Error creating user" });
+  });
 
   res.json({
     username: userName,
@@ -102,8 +104,8 @@ app.route('/api/users/:_id/exercises')
 
       newExercise.save();
       
-      var newExercise = exerciseModel.find().sort({date_log: -1}).limit(1).exec();
-      newExercise.then(function(doc) {
+      var newExerciseReturn = exerciseModel.find().sort({date_log: -1}).limit(1).exec();
+      newExerciseReturn.then(function(doc) {
         var desc = doc[0].description.toString();
         var durNum = parseInt(doc[0].duration);
 
@@ -114,6 +116,14 @@ app.route('/api/users/:_id/exercises')
           date: dateFinal,
           _id: id
         });
+        // types test
+        // console.log(
+        //   typeof(user),
+        //   typeof(desc),
+        //   typeof(durNum),
+        //   typeof(dateFinal),
+        //   typeof(id),
+        // )
       })
     });
 });
