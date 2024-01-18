@@ -160,14 +160,14 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
       let docExerciseFiltered = docExercise;
 
       if (searchParamsFrom && searchParamsTo) {
-         let from = new Date(searchParamsFrom);
-         let to = new Date(searchParamsTo)
-         docExerciseFiltered = docExerciseFiltered.filter((doc) => doc.date >= from);
-         docExerciseFiltered = docExerciseFiltered.filter((doc) => doc.date <= to);
+        let fromDate = new Date(searchParamsFrom);
+        let toDate = new Date(searchParamsTo);
+        docExerciseFiltered = docExerciseFiltered.filter((doc) => new Date(doc.date) >= fromDate);
+        docExerciseFiltered = docExerciseFiltered.filter((doc) => new Date(doc.date) <= toDate);
       }
-
+      
       if (searchParamsLimit) {
-         docExerciseFiltered = docExerciseFilter.slice(0, searchParamsLimit);
+        docExerciseFiltered = docExerciseFiltered.slice(0, searchParamsLimit);
       }
 
       var countRes = docExerciseFiltered.length;
