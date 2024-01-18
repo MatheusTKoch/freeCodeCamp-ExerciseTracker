@@ -44,7 +44,9 @@ app.route('/api/users')
   });
 
   newUser.save((err) => {
-    return res.status(500).json({ error: "Error creating user" });
+    if (err) {
+      console.error("Error creating user:", err);
+    }
   });
 
   res.json({
@@ -102,7 +104,11 @@ app.route('/api/users/:_id/exercises')
         date_log: new Date()
       });
 
-      newExercise.save();
+      newExercise.save((err) => {
+        if (err) {
+          console.error("Error creating exercise:", err);
+        }
+      });
       
       var newExerciseReturn = exerciseModel.find().sort({date_log: -1}).limit(1).exec();
       newExerciseReturn.then(function(doc) {
@@ -110,11 +116,11 @@ app.route('/api/users/:_id/exercises')
         var durNum = parseInt(doc[0].duration);
 
         res.json({
+          _id: id,
           username: user,
           description: desc,
           duration: durNum,
-          date: dateFinal,
-          _id: id
+          date: dateFinal
         });
         // types test
         // console.log(
@@ -170,7 +176,11 @@ app.route('/api/users/:_id/logs/:from?/:to?/:limit?')
         _id: id,
         username: user,
         count: countRes,
-        log: docExerciseFiltered
+        log: docExerciseFiltered.map(exercise => ({
+          description: exercise.description,
+          duration: exercise.duration,
+          date: new Date(exercise.date).toDateString()
+        }))
       });
     });
   })
