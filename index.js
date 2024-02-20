@@ -4,12 +4,13 @@ const cors = require('cors');
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-mongoose.connect(process.env.DATABASE_URL);
+mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
@@ -19,13 +20,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  exercises: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'exercise'
-  }]
+  exercises: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Exercise' }]
 });
-
-const userModel = mongoose.model('user', userSchema);
 
 const exerciseSchema = new mongoose.Schema({
   description: {
@@ -39,40 +35,38 @@ const exerciseSchema = new mongoose.Schema({
   date: {
     type: String,
     required: true
+  },
+  date_log: {
+    type: Date,
+    default: Date.now
   }
 });
 
-const exerciseModel = mongoose.model('exercise', exerciseSchema);
+const userModel = mongoose.model('User', userSchema);
+const exerciseModel = mongoose.model('Exercise', exerciseSchema);
 
-app.route('/api/users')
-  .get((req, res) => {
-    userModel.find({}, (err, users) => {
-      if (err) {
-        console.error("Error finding users:", err);
-        return res.status(500).json({ error: "Internal Server Error" });
-      }
-      const userQueryArray = users.map(user => ({
-        username: user.username,
-        _id: user._id
-      }));
-      res.json(userQueryArray);
-    });
-  })
-  .post((req, res) => {
-    const { username } = req.body;
-    const newUser = new userModel({ username });
-
-    newUser.save((err, savedUser) => {
-      if (err) {
-        console.error("Error creating user:", err);
-        return res.status(400).json({ error: "Could not create user" });
-      }
-      res.json({
-        username: savedUser.username,
-        _id: savedUser._id
-      });
-    });
+app.get('/api/users', (req, res) => {
+  userModel.find({}, '_id username', (err, users) => {
+    if (err) {
+      console.error("Error finding users:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+    res.json(users);
   });
+});
+
+app.post('/api/users', (req, res) => {
+  const { username } = req.body;
+  const newUser = new userModel({ username });
+
+  newUser.save((err, savedUser) => {
+    if (err) {
+      console.error("Error creating user:", err);
+      return res.status(400).json({ error: "Could not create user" });
+    }
+    res.json(savedUser);
+  });
+});
 
 app.post('/api/users/:_id/exercises', (req, res) => {
   const { description, duration, date } = req.body;
@@ -103,21 +97,20 @@ app.post('/api/users/:_id/exercises', (req, res) => {
           return res.status(500).json({ error: "Internal Server Error" });
         }
 
-        const { _id, username } = savedUser;
-        const { description, duration, date } = savedExercise;
+        // Populate the exercise fields
+        savedUser.populate('exercises', (err, userWithExercises) => {
+          if (err) {
+            console.error("Error populating exercises:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
 
-        res.json({
-          _id,
-          username,
-          description,
-          duration,
-          date
+          res.json(userWithExercises);
         });
       });
     });
   });
 });
 
-const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log('Your app is listening on port ' + listener.address().port);
+app.listen(process.env.PORT || 3000, () => {
+  console.log('Your app is listening on port ' + process.env.PORT || 3000);
 });
