@@ -1,145 +1,143 @@
-const express = require('express')
-const app = express()
-const cors = require('cors')
-require('dotenv').config()
+const express = require('express');
+const app = express();
+const cors = require('cors');
+require('dotenv').config();
 const mongoose = require('mongoose');
 
 mongoose.connect(process.env.DATABASE_URL);
 
-app.use(cors())
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.static('public'));
+
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/views/index.html')
+  res.sendFile(__dirname + '/views/index.html');
 });
 
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true
-  },
-  logs: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Exercise'
-  }]
-});
-
-const userModel = mongoose.model('User', userSchema);
-
-const exerciseSchema = new mongoose.Schema({
-  description: {
-    type: String,
-    required: true
-  },
-  duration: {
-    type: Number,
-    required: true
-  },
-  date: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
   }
 });
 
-const exerciseModel = mongoose.model('Exercise', exerciseSchema);
+const userModel = mongoose.model('user', userSchema);
 
 app.route('/api/users')
-.get(function(req, res) {
-  var userQuery = userModel.find().exec();
-  userQuery.then(function(doc) {
-    var userQueryArray = []
-    for (let i = 0; i < doc.length; i++) {
-      userQueryArray.push({
-        username: doc[i].username,
-        _id: doc[i]._id
-      });
-    }
-      res.json(userQueryArray);
-  });
-})
-.post(function(req, res) {
-  let userName = req.body.username;
-  var newUser = new userModel({
-    username: userName
-  });
-
-  newUser.save((err) => {
-    if (err) {
-      console.error("Error creating user:", err);
-      return res.status(500).send("Error creating user");
-    }
-
-    res.json({
-      username: userName,
-      _id: newUser._id
-    });
-  });
-});
-
-app.route('/api/users/:_id/exercises')
-.post(function(req, res) {
-    var userID = req.params._id;
-
-    var userName = userModel.findById(userID).exec();
-    userName.then(function(user) {
-      var desc = req.body.description;
-      var dur =  req.body.duration;
-
-      var dateFinal = req.body.date ? (new Date(req.body.date)).toDateString() : (new Date()).toDateString();
-
-      var newExercise = new exerciseModel({
-        description: desc,
-        duration: dur,
-        date: dateFinal,
-        userId: userID
-      });
-
-      newExercise.save((err) => {
-        if (err) {
-          console.error("Error creating exercise:", err);
-          return res.status(500).send("Error creating exercise");
-        }
-
-        user.logs.push(newExercise);
-        user.save((err) => {
-          if (err) {
-            console.error("Error updating user:", err);
-            return res.status(500).send("Error updating user");
-          }
-
-          res.json(user);
-        });
-      });
-    });
-});
-
-app.route('/api/users/:_id/logs')
-.get(function(req, res) {
-  var userId = req.params._id;
-
-  var userPromise = userModel.findById(userId).populate('logs').exec();
-  userPromise.then(function(user) {
-    var log = user.logs.map(exercise => ({
-      description: exercise.description,
-      duration: exercise.duration,
-      date: (new Date(exercise.date)).toDateString()
-    }));
-
-    res.json({
-      _id: user._id,
-      username: user.username,
-      log: log
+  .get(function(req, res) {
+    userModel.find({}, (err, users) => {
+      if (err) {
+        console.error("Error fetching users:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+      res.json(users.map(user => ({
+        username: user.username,
+        _id: user._id
+      })));
     });
   })
+  .post(function(req, res) {
+    const { username } = req.body;
+    const newUser = new userModel({ username });
+
+    newUser.save((err, savedUser) => {
+      if (err) {
+        console.error("Error creating user:", err);
+        return res.status(400).json({ error: "Could not create user" });
+      }
+      res.json({ username: savedUser.username, _id: savedUser._id });
+    });
+  });
+
+const exerciseSchema = new mongoose.Schema({
+  username: String,
+  description: String,
+  duration: Number,
+  date: String
 });
 
+const exerciseModel = mongoose.model('exercise', exerciseSchema);
+
+app.post('/api/users/:_id/exercises', (req, res) => {
+  const { description, duration, date } = req.body;
+  const { _id } = req.params;
+
+  userModel.findById(_id, (err, user) => {
+    if (err || !user) {
+      console.error("Error finding user:", err);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const newExercise = new exerciseModel({
+      username: user.username,
+      description,
+      duration,
+      date: date ? new Date(date).toDateString() : new Date().toDateString()
+    });
+
+    newExercise.save((err, savedExercise) => {
+      if (err) {
+        console.error("Error creating exercise:", err);
+        return res.status(400).json({ error: "Could not create exercise" });
+      }
+
+      res.json({
+        _id: user._id,
+        username: user.username,
+        description: savedExercise.description,
+        duration: savedExercise.duration,
+        date: savedExercise.date
+      });
+    });
+  });
+});
+
+app.get('/api/users/:_id/logs', (req, res) => {
+  const { _id } = req.params;
+  const { from, to, limit } = req.query;
+
+  userModel.findById(_id, (err, user) => {
+    if (err || !user) {
+      console.error("Error finding user:", err);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    exerciseModel.find({ username: user.username }, (err, exercises) => {
+      if (err) {
+        console.error("Error fetching exercises:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      let log = exercises.map(exercise => ({
+        description: exercise.description,
+        duration: exercise.duration,
+        date: exercise.date
+      }));
+
+      if (from && to) {
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        log = log.filter(exercise => {
+          const exerciseDate = new Date(exercise.date);
+          return exerciseDate >= fromDate && exerciseDate <= toDate;
+        });
+      }
+
+      if (limit) {
+        log = log.slice(0, limit);
+      }
+
+      res.json({
+        _id: user._id,
+        username: user.username,
+        count: log.length,
+        log
+      });
+    });
+  });
+});
 
 const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log('Your app is listening on port ' + listener.address().port)
-})
+  console.log('Your app is listening on port ' + listener.address().port);
+});
