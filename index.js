@@ -70,7 +70,6 @@ app.post('/api/users/:_id/exercises', (req, res) => {
     }
 
     const newExercise = new exerciseModel({
-      username: user.username,
       description,
       duration,
       date: date ? new Date(date).toDateString() : new Date().toDateString()
@@ -82,16 +81,57 @@ app.post('/api/users/:_id/exercises', (req, res) => {
         return res.status(400).json({ error: "Could not create exercise" });
       }
 
-      res.json({
-        _id: user._id,
-        username: user.username,
-        description: savedExercise.description,
-        duration: savedExercise.duration,
-        date: savedExercise.date
+      user.exercises.push(savedExercise);
+      user.save((err, savedUser) => {
+        if (err) {
+          console.error("Error saving user:", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        res.json({
+          _id: savedUser._id,
+          username: savedUser.username,
+          description: savedExercise.description,
+          duration: savedExercise.duration,
+          date: savedExercise.date
+        });
       });
     });
   });
 });
+// app.post('/api/users/:_id/exercises', (req, res) => {
+//   const { description, duration, date } = req.body;
+//   const { _id } = req.params;
+
+//   userModel.findById(_id, (err, user) => {
+//     if (err || !user) {
+//       console.error("Error finding user:", err);
+//       return res.status(404).json({ error: "User not found" });
+//     }
+
+//     const newExercise = new exerciseModel({
+//       username: user.username,
+//       description,
+//       duration,
+//       date: date ? new Date(date).toDateString() : new Date().toDateString()
+//     });
+
+//     newExercise.save((err, savedExercise) => {
+//       if (err) {
+//         console.error("Error creating exercise:", err);
+//         return res.status(400).json({ error: "Could not create exercise" });
+//       }
+
+//       res.json({
+//         username: user.username,
+//         description: savedExercise.description,
+//         duration: savedExercise.duration,
+//         date: savedExercise.date,
+//         _id: user._id
+//       });
+//     });
+//   });
+// });
 
 app.get('/api/users/:_id/logs', (req, res) => {
   const { _id } = req.params;
